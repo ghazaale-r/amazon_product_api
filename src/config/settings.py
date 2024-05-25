@@ -30,7 +30,10 @@ environ.Env.read_env() # Reading .env file
 SECRET_KEY = ENV('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = ENV('DEBUG')
+ENV = environ.Env(
+    # set casting ('true', 'True', '1' all to True), default value
+    DEBUG=(bool, False),
+)
 
 ALLOWED_HOSTS = json.loads(ENV('ALLOWED_HOSTS'))
 

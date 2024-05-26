@@ -21,7 +21,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Initialise environment variables
 ENV = environ.Env()
 
-environ.Env.read_env() # Reading .env file
+# environ.Env.read_env() # Reading .env file
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -30,7 +31,7 @@ environ.Env.read_env() # Reading .env file
 SECRET_KEY = ENV('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = environ.Env(
+DEBUG = ENV(
     # set casting ('true', 'True', '1' all to True), default value
     DEBUG=(bool, True),
 )
@@ -101,7 +102,8 @@ DATABASES = {
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://127.0.0.1:6379/1',
+        # 'LOCATION': 'redis://127.0.0.1:6379/1',
+        'LOCATION': ENV('REDIS_URL', default='redis://localhost:6379/0'),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         }

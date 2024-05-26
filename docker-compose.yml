@@ -9,6 +9,15 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    # environment:
+    #   POSTGRES_DB: ${POSTGRES_DB}
+    #   POSTGRES_USER: ${POSTGRES_USER}
+    #   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    #   POSTGRES_HOST_AUTH_METHOD: trust
+
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -29,12 +38,17 @@ services:
     depends_on:
       - db
       - redis
-    environment:
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
-      - REDIS_URL=redis://redis:6379/0
+    env_file:
+      - ./src/config/.env  # مسیر صحیح فایل .env را تنظیم کنید
+    # environment:
+    #   - SECRET_KEY=${SECRET_KEY}
+    #   - DEBUG=${DEBUG}
+    #   - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+    #   - POSTGRES_DB=${POSTGRES_DB}
+    #   - POSTGRES_USER=${POSTGRES_USER}
+    #   - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    #   - DATABASE_URL=${DATABASE_URL}
+    #   - REDIS_URL=${REDIS_URL}
 
 volumes:
   postgres_data:

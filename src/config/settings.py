@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     
     # Third-party apps
     'rest_framework',
+    'django_filters',
     
     # Custom apps
     'apps.product', # or you can use 'apps.product.apps.ProductConfig'

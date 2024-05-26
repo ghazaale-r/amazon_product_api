@@ -3,7 +3,7 @@ version: '3.8'
 services:
 
   db:
-    container_name: amazon_product_apiـpostgres_db
+    container_name: amazon_product_api_postgres_db
     image: postgres:14
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
@@ -13,7 +13,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   redis:
-    container_name: amazon_product_apiـredis_cache
+    container_name: amazon_product_api_redis_cache
     image: redis:latest
 
   web:

@@ -30,10 +30,13 @@ environ.Env.read_env() # Reading .env file
 SECRET_KEY = ENV('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-ENV = environ.Env(
+DEBUG = environ.Env(
     # set casting ('true', 'True', '1' all to True), default value
-    DEBUG=(bool, False),
+    DEBUG=(bool, True),
 )
+print("================")
+print(DEBUG)
+# DEBUG = True
 
 ALLOWED_HOSTS = json.loads(ENV('ALLOWED_HOSTS'))
 
@@ -147,3 +150,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# REST FRAMEWORK settings
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+}

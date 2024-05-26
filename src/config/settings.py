@@ -53,6 +53,8 @@ INSTALLED_APPS = [
     # Third-party apps
     'rest_framework',
     
+    # Custom apps
+    'apps.product', # or you can use 'apps.product.apps.ProductConfig'
     
 ]
 

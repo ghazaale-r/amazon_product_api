@@ -1,3 +1,5 @@
+from django.core.cache import cache  # Import cache for caching functionality
+
 # Import necessary modules from Django REST framework and other libraries
 from rest_framework import generics
 from rest_framework.response import Response  # Import Response for creating HTTP responses
@@ -39,7 +41,11 @@ class ProductDetailAPIView(generics.RetrieveAPIView):
         # if not product_id:
         #     return self.error_response("Product ID is required", status.HTTP_400_BAD_REQUEST)
 
-        
+        # Check if product exists in cache
+        product_data = self.check_cache(product_id)
+        if product_data:
+            return self.success_response(product_data, status.HTTP_200_OK)
+
         # Check if product exists in the database
         product_data = self.check_database(product_id)
         if product_data:
@@ -63,7 +69,12 @@ class ProductDetailAPIView(generics.RetrieveAPIView):
         else:
             return self.error_response("Product not found", status.HTTP_404_NOT_FOUND)
 
-   
+    def check_cache(self, product_id):
+        """
+        Check if the product exists in the cache.
+        """
+        cache_key = f"product_{product_id}"
+        return cache.get(cache_key)
 
     def check_database(self, product_id):
         """

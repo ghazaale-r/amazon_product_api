@@ -34,9 +34,6 @@ DEBUG = environ.Env(
     # set casting ('true', 'True', '1' all to True), default value
     DEBUG=(bool, True),
 )
-print("================")
-print(DEBUG)
-# DEBUG = True
 
 ALLOWED_HOSTS = json.loads(ENV('ALLOWED_HOSTS'))
 

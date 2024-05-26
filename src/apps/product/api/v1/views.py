@@ -48,7 +48,9 @@ class ProductDetailAPIView(generics.RetrieveAPIView):
 
         # Check if product exists in the database
         product_data = self.check_database(product_id)
+        
         if product_data:
+            cache.set(f"product_{product_id}", serializer.data, timeout=60*60*12) #  Cache for 12 hours
             return self.success_response(product_data, status.HTTP_200_OK)
 
         # Scrape product details from Amazon
@@ -64,7 +66,7 @@ class ProductDetailAPIView(generics.RetrieveAPIView):
             product = Product(**product_data)
             product.save()
             serializer = ProductSerializer(product)
-            cache.set(f"product_{product_id}", serializer.data, timeout=60*15)  # Cache for 15 minutes
+            cache.set(f"product_{product_id}", serializer.data, timeout=60*60*12)  # Cache for 12 hours
             return self.success_response(serializer.data, status.HTTP_201_CREATED)
         else:
             return self.error_response("Product not found", status.HTTP_404_NOT_FOUND)

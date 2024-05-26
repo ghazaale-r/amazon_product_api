@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import json
+import os
 
 import environ
 
@@ -19,24 +20,27 @@ import environ
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Initialise environment variables
-ENV = environ.Env()
+env = environ.Env(
+    DEBUG=(bool, False)
+)
 
-environ.Env.read_env() # Reading .env file
-# environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+# environ.Env.read_env() # Reading .env file
+# Reading .env file
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = ENV('SECRET_KEY')
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = environ.Env(
-    # set casting ('true', 'True', '1' all to True), default value
-    DEBUG=(bool, True),
-)
+DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = json.loads(ENV('ALLOWED_HOSTS'))
+ALLOWED_HOSTS = json.loads(env('ALLOWED_HOSTS', default='["*"]'))
+print('ALLOWED_HOSTS :: ', ALLOWED_HOSTS)
+
+# ALLOWED_HOSTS = ENV.list('ALLOWED_HOSTS')
 
 
 
@@ -94,22 +98,42 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': env.db(),
+# }
+
 DATABASES = {
-    'default': ENV.db("DATABASE_URL"),
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': env('POSTGRES_DB'),
+        'USER': env('POSTGRES_USER'),
+        'PASSWORD': env('POSTGRES_PASSWORD'),
+        'HOST': 'db',
+        'PORT': '5432',
+    }
 }
 
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django_redis.cache.RedisCache',
+#         # 'LOCATION': 'redis://127.0.0.1:6379/1',
+#         'LOCATION': ENV.db('REDIS_URL', default='redis://localhost:6379/0'),
+#         'OPTIONS': {
+#             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+#         }
+#     }
+# }
 
+# Redis cache
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        # 'LOCATION': 'redis://127.0.0.1:6379/1',
-        'LOCATION': ENV('REDIS_URL', default='redis://localhost:6379/0'),
+        'LOCATION': env('REDIS_URL'),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         }
     }
 }
-
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 

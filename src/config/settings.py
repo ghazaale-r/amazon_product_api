@@ -54,7 +54,7 @@ INSTALLED_APPS = [
     'rest_framework',
     
     # Custom apps
-    'apps.product',
+    'apps.product', # or you can use 'apps.product.apps.ProductConfig'
     
 ]
 

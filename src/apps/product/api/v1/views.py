@@ -1,3 +1,5 @@
+from django.core.cache import cache  # Import cache for caching functionality
+
 # Import necessary modules from Django REST framework and other libraries
 from rest_framework import generics
 from rest_framework.response import Response  # Import Response for creating HTTP responses
@@ -6,6 +8,7 @@ from django_filters import rest_framework as filters
 
 # Import necessary models and serializers from the application
 from apps.product.models import Product
+from .serializers import ProductSerializer
 from .filters import ProductFilter
 
 # Import necessary modules for web scraping
@@ -22,7 +25,8 @@ from webdriver_manager.chrome import ChromeDriverManager
 class ProductDetailAPIView(generics.RetrieveAPIView):
     # Set the queryset and serializer class for the view
     queryset = Product.objects.all()
-    # filter_backends = (filters.DjangoFilterBackend,)
+    serializer_class = ProductSerializer
+    # filter_backends = (filters.DjangoFilterBackend,) setted in settings.py in rest framwork settings section 
     filterset_class = ProductFilter
 
     def get(self, request, *args, **kwargs):
@@ -34,19 +38,55 @@ class ProductDetailAPIView(generics.RetrieveAPIView):
         
         # Get the product_id from query parameters
         product_id = request.query_params.get('product_id')
-     
+        # if not product_id:
+        #     return self.error_response("Product ID is required", status.HTTP_400_BAD_REQUEST)
+
+        # Check if product exists in cache
+        product_data = self.check_cache(product_id)
+        if product_data:
+            return self.success_response(product_data, status.HTTP_200_OK)
+
+        # Check if product exists in the database
+        product_data = self.check_database(product_id)
+        if product_data:
+            return self.success_response(product_data, status.HTTP_200_OK)
+
         # Scrape product details from Amazon
         product_data = self.scrape_amazon_product_with_selenium(product_id)
-        product_data = {}
+        
         if product_data:
+            
             # Check if all items except product_id are None
             if all(value is None for key, value in product_data.items() if key != 'product_id'):
                 return self.error_response("Product data is incomplete", status=status.HTTP_400_BAD_REQUEST)
-
+            
+            # Save the product to the database
+            product = Product(**product_data)
+            product.save()
+            serializer = ProductSerializer(product)
+            cache.set(f"product_{product_id}", serializer.data, timeout=60*15)  # Cache for 15 minutes
             return self.success_response(serializer.data, status.HTTP_201_CREATED)
         else:
             return self.error_response("Product not found", status.HTTP_404_NOT_FOUND)
 
+    def check_cache(self, product_id):
+        """
+        Check if the product exists in the cache.
+        """
+        cache_key = f"product_{product_id}"
+        return cache.get(cache_key)
+
+    def check_database(self, product_id):
+        """
+        Check if the product exists in the database.
+        """
+        try:
+            product = Product.objects.get(product_id=product_id)
+            serializer = ProductSerializer(product)
+            cache.set(f"product_{product_id}", serializer.data, timeout=60*15)  # Cache for 15 minutes
+            return serializer.data
+        except Product.DoesNotExist:
+            return None
 
     def scrape_amazon_product_with_selenium(self, product_id):
         """

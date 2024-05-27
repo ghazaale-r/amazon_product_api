@@ -94,7 +94,7 @@ class ProductDetailAPIView(generics.RetrieveAPIView):
         except Product.DoesNotExist:
             return None
 
-    def craete_webdriver(self):
+    def create_webdriver(self):
         selenium_host = os.getenv('SELENIUM_HOST', 'selenium')
         selenium_port = os.getenv('SELENIUM_PORT', '4444')
         selenium_url = f'http://{selenium_host}:{selenium_port}/wd/hub'
@@ -116,13 +116,15 @@ class ProductDetailAPIView(generics.RetrieveAPIView):
         Scrape product details from Amazon using Selenium.
         """
         url = f"https://www.amazon.com/dp/{product_id}"
-        driver = create_webdriver()
+        driver = self.create_webdriver()
         
         try:
             logger.info(f"Fetching URL: {url}")
             driver.get(url)
             
-            if "validateCaptcha" in driver.current_url:
+            page_source = driver.page_source
+            captcha_form = '<form method="get" action="/errors/validateCaptcha"'
+            if captcha_form in page_source or 'validatecaptcha' in page_source.lower or 'captcha' in page_source.lower():    
                 logger.info("CAPTCHA detected. Solving CAPTCHA...")
                 captcha_solution = self.solve_captcha(driver.page_source)
                 if captcha_solution:

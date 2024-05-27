@@ -22,7 +22,7 @@ class Product(TimeStampedModel):
     product_id = models.CharField(max_length=100, unique=True)
     name = models.CharField(max_length=255)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    rating = models.FloatField()
+    rating = models.CharField(max_length=100)  # Change FloatField to CharField
     average_score = models.FloatField()
 
     def __str__(self):

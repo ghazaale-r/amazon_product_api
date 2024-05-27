@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import json
-import os
 
 import environ
 
@@ -24,9 +23,8 @@ env = environ.Env(
     DEBUG=(bool, False)
 )
 
-# environ.Env.read_env() # Reading .env file
 # Reading .env file
-environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+environ.Env.read_env(BASE_DIR / 'config/.env')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -38,11 +36,6 @@ SECRET_KEY = env('SECRET_KEY')
 DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = json.loads(env('ALLOWED_HOSTS', default='["*"]'))
-print('ALLOWED_HOSTS :: ', ALLOWED_HOSTS)
-
-# ALLOWED_HOSTS = ENV.list('ALLOWED_HOSTS')
-
-
 
 # Application definition
 

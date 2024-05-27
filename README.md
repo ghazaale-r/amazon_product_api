@@ -60,9 +60,8 @@ The project is Dockerized for easy setup and deployment, and it uses PostgreSQL 
     For the first time, you need to run these commands manually. After that, migrate and runserver are included in the Dockerfile and will run automatically. 
 
     ```sh
-    docker-compose exec db psql -U postgres -c "CREATE DATABASE your_database_name;"
     docker-compose exec web python manage.py migrate
-    docker-compose exec web python manage.py runserver 0.0.0.0:8000
+    docker-compose exec web python manage.py craetesuperuser
     ```
 
 **Access the application**:

@@ -61,7 +61,7 @@ The project is Dockerized for easy setup and deployment, and it uses PostgreSQL 
 
     ```sh
     docker-compose exec web python manage.py migrate
-    docker-compose exec web python manage.py craetesuperuser
+    docker-compose exec web python manage.py createsuperuser
     ```
 
 **Access the application**:

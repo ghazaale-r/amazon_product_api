@@ -93,11 +93,7 @@ class ProductDetailAPIView(generics.RetrieveAPIView):
         except Product.DoesNotExist:
             return None
 
-    def scrape_amazon_product_with_selenium(self, product_id):
-        """
-        Scrape product details from Amazon using Selenium.
-        """
-        url = f"https://www.amazon.com/dp/{product_id}"
+    def craete_webdriver(self):
         selenium_host = os.getenv('SELENIUM_HOST', 'selenium')
         selenium_port = os.getenv('SELENIUM_PORT', '4444')
         selenium_url = f'http://{selenium_host}:{selenium_port}/wd/hub'
@@ -112,6 +108,15 @@ class ProductDetailAPIView(generics.RetrieveAPIView):
             command_executor=selenium_url,
             options=options
         )
+        return driver
+        
+    def scrape_amazon_product_with_selenium(self, product_id):
+        """
+        Scrape product details from Amazon using Selenium.
+        """
+        url = f"https://www.amazon.com/dp/{product_id}"
+        driver = create_webdriver()
+        
         try:
             logger.info(f"Fetching URL: {url}")
             driver.get(url)

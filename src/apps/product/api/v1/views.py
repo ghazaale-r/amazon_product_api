@@ -1,9 +1,9 @@
+import os
 from django.core.cache import cache  # Import cache for caching functionality
 
 # Import necessary modules from Django REST framework and other libraries
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.response import Response  # Import Response for creating HTTP responses
-from rest_framework import status  # Import status for HTTP status codes
 from django_filters import rest_framework as filters
 
 # Import necessary models and serializers from the application
@@ -15,13 +15,9 @@ from .filters import ProductFilter
 import requests  # Import requests for making HTTP requests
 from bs4 import BeautifulSoup  # Import BeautifulSoup for parsing HTML
 from selenium import webdriver  
-from selenium.webdriver.chrome.service import Service as ChromeService  
 from selenium.webdriver.chrome.options import Options  # Import Options for configuring Chrome options
-from webdriver_manager.chrome import ChromeDriverManager
 
 
-
-# class ProductDetailAPIView(generics.ListAPIView):
 class ProductDetailAPIView(generics.RetrieveAPIView):
     # Set the queryset and serializer class for the view
     queryset = Product.objects.all()
@@ -38,9 +34,7 @@ class ProductDetailAPIView(generics.RetrieveAPIView):
         
         # Get the product_id from query parameters
         product_id = request.query_params.get('product_id')
-        # if not product_id:
-        #     return self.error_response("Product ID is required", status.HTTP_400_BAD_REQUEST)
-
+      
         # Check if product exists in cache
         product_data = self.check_cache(product_id)
         if product_data:
@@ -60,7 +54,7 @@ class ProductDetailAPIView(generics.RetrieveAPIView):
             
             # Check if all items except product_id are None
             if all(value is None for key, value in product_data.items() if key != 'product_id'):
-                return self.error_response("Product data is incomplete", status=status.HTTP_400_BAD_REQUEST)
+                return self.error_response("Product data is incomplete", status.HTTP_400_BAD_REQUEST)
             
             # Save the product to the database
             product = Product(**product_data)
@@ -95,10 +89,20 @@ class ProductDetailAPIView(generics.RetrieveAPIView):
         Scrape product details from Amazon using Selenium.
         """
         url = f"https://www.amazon.com/dp/{product_id}"
+        selenium_host = os.getenv('SELENIUM_HOST', 'selenium')
+        selenium_port = os.getenv('SELENIUM_PORT', '4444')
+        selenium_url = f'http://{selenium_host}:{selenium_port}/wd/hub'
+
         options = Options()
         options.headless = True  # Run Chrome in headless mode
-        driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
-        
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('--disable-gpu')
+
+        driver = webdriver.Remote(
+            command_executor=selenium_url,
+            options=options
+        )
         try:
             driver.get(url)
             soup = BeautifulSoup(driver.page_source, 'html.parser')

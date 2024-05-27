@@ -36,22 +36,34 @@ The project is Dockerized for easy setup and deployment, and it uses PostgreSQL 
    git clone https://github.com/ghazaale-r/amazon_product_api.git
    cd amazon_product_api
    ```
-**Copy the example environment variables file and customize it**
-   ‍‍‍‍ Using Command Prompt:
-        copy .env.example .env
-    Using PowerShell
-        cp .env.example .env
-   
+**Copy the example environment variables file and customize it**:
+    **Using Command Prompt**
 
-**Build and start the Docker containers**
+    ```sh
+        copy .env.example .env
+    ```
+    
+    **Using PowerShell**
+
+    ```sh
+        cp .env.example .env
+    ```
+
+**Build and start the Docker containers**:
+
     ```sh
     docker-compose up --build
     ```
 
-**Run the database migrations**
+**Run the database migrations**:
+
+    For the first time, you need to run these commands manually. After that, migrate and runserver are included in the Dockerfile and will run automatically. 
+
     ```sh
+    docker-compose exec db psql -U postgres -c "CREATE DATABASE your_database_name;"
     docker-compose exec web python manage.py migrate
+    docker-compose exec web python manage.py runserver 0.0.0.0:8000
     ```
 
-**Access the application**
+**Access the application**:
     http://localhost:8000

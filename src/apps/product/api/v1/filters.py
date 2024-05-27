@@ -8,9 +8,11 @@ from apps.product.models import Product
 # ASIN is a keyword used by Amazon for its product_ids
 def validate_asin(value):
     # "A-Z" "0-9"
-    if not value.isalnum() or not value.isupper():
-        raise ValidationError("Invalid product_id ")
-
+    pattern = re.compile(r'^[A-Z0-9]+$')
+    
+    if not pattern.match(value):
+        raise ValidationError("Invalid product_id")
+   
 class ProductFilter(filters.FilterSet):
     product_id = filters.CharFilter(
         field_name="product_id", 

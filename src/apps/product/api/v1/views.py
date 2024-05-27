@@ -2,8 +2,8 @@ from django.core.cache import cache  # Import cache for caching functionality
 
 # Import necessary modules from Django REST framework and other libraries
 from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.response import Response  # Import Response for creating HTTP responses
-from rest_framework import status  # Import status for HTTP status codes
 from django_filters import rest_framework as filters
 
 # Import necessary models and serializers from the application
@@ -60,7 +60,7 @@ class ProductDetailAPIView(generics.RetrieveAPIView):
             
             # Check if all items except product_id are None
             if all(value is None for key, value in product_data.items() if key != 'product_id'):
-                return self.error_response("Product data is incomplete", status=status.HTTP_400_BAD_REQUEST)
+                return self.error_response("Product data is incomplete", status.HTTP_400_BAD_REQUEST)
             
             # Save the product to the database
             product = Product(**product_data)

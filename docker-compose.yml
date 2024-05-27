@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+
+  db:
+    container_name: amazon_product_api_postgres_db
+    image: postgres:14
+    env_file:
+      - ./src/config/.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+
+  redis:
+    container_name: amazon_product_api_redis_cache
+    image: redis:latest
+
+  selenium:
+    container_name: selenium
+    image: selenium/standalone-chrome:latest
+    ports:
+      - "4444:4444"
+  
+  web:
+    container_name: amazon_product_api
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./src:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+      - selenium
+
+volumes:
+  postgres_data:

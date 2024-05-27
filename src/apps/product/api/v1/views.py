@@ -142,9 +142,6 @@ class ProductDetailAPIView(generics.RetrieveAPIView):
                 button = driver.find_element(By.CLASS_NAME, 'a-button-text')
                 button.click()
                 
-                import time
-                time.sleep(5)
-                
                 # Wait for the page to load after clicking
                 WebDriverWait(driver, 10).until(
                     EC.presence_of_element_located((By.ID, "productTitle"))

@@ -16,6 +16,7 @@ import requests  # Import requests for making HTTP requests
 from bs4 import BeautifulSoup  # Import BeautifulSoup for parsing HTML
 from selenium import webdriver  
 from selenium.webdriver.chrome.options import Options  # Import Options for configuring Chrome options
+from twocaptcha import TwoCaptcha  # Import TwoCaptcha for solving CAPTCHA
 
 
 class ProductDetailAPIView(generics.RetrieveAPIView):
@@ -105,6 +106,12 @@ class ProductDetailAPIView(generics.RetrieveAPIView):
         )
         try:
             driver.get(url)
+            
+            if "validateCaptcha" in driver.current_url:
+                captcha_solution = self.solve_captcha(driver.page_source)
+                if captcha_solution:
+                    driver.get(f"{url}&field-keywords={captcha_solution}")
+
             soup = BeautifulSoup(driver.page_source, 'html.parser')
             
             res = self.parse_soup(soup, product_id)
@@ -113,6 +120,19 @@ class ProductDetailAPIView(generics.RetrieveAPIView):
         finally:
             driver.quit()
 
+    def solve_captcha(self, page_source):
+        """
+        Solve CAPTCHA using 2Captcha service.
+        """
+        solver = TwoCaptcha(os.getenv('TWOCAPTCHA_API_KEY'))
+
+        try:
+            result = solver.amazon(page_source)
+            return result['code']
+        except Exception as e:
+            print(f"Failed to solve CAPTCHA: {e}")
+            return None
+        
     def parse_soup(self, soup, product_id):
         # Get the product title
             # example : <span id="productTitle" class="a-size-large product-title-word-break">        

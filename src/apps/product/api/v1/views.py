@@ -19,6 +19,14 @@ from selenium.webdriver.chrome.options import Options  # Import Options for conf
 from twocaptcha import TwoCaptcha  # Import TwoCaptcha for solving CAPTCHA
 
 
+# logging settings store in file
+log_file = 'scraper.log'
+logging.basicConfig(level=logging.INFO, filename=log_file, filemode='a',
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+
+
 class ProductDetailAPIView(generics.RetrieveAPIView):
     # Set the queryset and serializer class for the view
     queryset = Product.objects.all()
@@ -105,13 +113,19 @@ class ProductDetailAPIView(generics.RetrieveAPIView):
             options=options
         )
         try:
+            logger.info(f"Fetching URL: {url}")
             driver.get(url)
             
             if "validateCaptcha" in driver.current_url:
+                logger.info("CAPTCHA detected. Solving CAPTCHA...")
                 captcha_solution = self.solve_captcha(driver.page_source)
                 if captcha_solution:
+                    logger.info("Fetching URL again with CAPTCHA solution...")
                     driver.get(f"{url}&field-keywords={captcha_solution}")
-
+                else:
+                    logger.error("Failed to solve CAPTCHA.")
+                    return None
+                
             soup = BeautifulSoup(driver.page_source, 'html.parser')
             
             res = self.parse_soup(soup, product_id)
@@ -127,10 +141,12 @@ class ProductDetailAPIView(generics.RetrieveAPIView):
         solver = TwoCaptcha(os.getenv('TWOCAPTCHA_API_KEY'))
 
         try:
+            logger.info("Solving CAPTCHA...")
             result = solver.amazon(page_source)
+            logger.info("CAPTCHA solved successfully.")
             return result['code']
         except Exception as e:
-            print(f"Failed to solve CAPTCHA: {e}")
+            logger.error(f"Failed to solve CAPTCHA: {e}")
             return None
         
     def parse_soup(self, soup, product_id):
@@ -140,21 +156,33 @@ class ProductDetailAPIView(generics.RetrieveAPIView):
             # pocket-friendly, with port protection       
             # </span> 
         title_tag = soup.find('span', id='productTitle', class_='a-size-large product-title-word-break')
+        if not title_tag:
+            logger.error("No title_tag . Failed to fetch product page after CAPTCHA.")
+            return None
         name = title_tag.get_text(strip=True) if title_tag else None
         
         # Get the product price
         # <input type="hidden" id="twister-plus-price-data-price" value="38.54" />
         price_tag = soup.find('input', id='twister-plus-price-data-price')
+        if not price_tag:
+            logger.error("No price_tag . Failed to fetch product page after CAPTCHA.")
+            return None
         price = price_tag['value'] if price_tag and 'value' in price_tag.attrs else None
 
         # Get the product rating
         # <span id="acrCustomerReviewText" class="a-size-base">354 ratings</span>
         rating_tag = soup.find('span', id='acrCustomerReviewText', class_='a-size-base')
+        if not rating_tag:
+            logger.error("No rating_tag . Failed to fetch product page after CAPTCHA.")
+            return None
         rating = rating_tag.get_text(strip=True).split()[0] if rating_tag else None
 
         # Get the product average score
         # <span id="acrPopover" class="reviewCountTextLinkedHistogram noUnderline" title="4.6 out of 5 stars">
         average_score_tag = soup.find('span', id='acrPopover', class_='reviewCountTextLinkedHistogram noUnderline')
+        if not average_score_tag:
+            logger.error("No average_score_tag . Failed to fetch product page after CAPTCHA.")
+            return None
         average_score = average_score_tag['title'].split()[0] if average_score_tag and 'title' in average_score_tag.attrs else None
         
         return {
